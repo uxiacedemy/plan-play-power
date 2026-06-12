@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useRole } from "@/hooks/useRole";
 
 const allNav = [
-  { to: "/dashboard", label: "Home", icon: LayoutDashboard, roles: ["owner", "manager"] as const },
+  { to: "/dashboard", label: "Home", icon: LayoutDashboard, roles: ["owner", "manager", "cashier"] as const },
   { to: "/pos", label: "POS", icon: ShoppingCart, roles: ["owner", "manager", "cashier"] as const },
   { to: "/products", label: "Products", icon: Package, roles: ["owner", "manager"] as const },
   { to: "/reports", label: "Reports", icon: BarChart3, roles: ["owner", "manager"] as const },
