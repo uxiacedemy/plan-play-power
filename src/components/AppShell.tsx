@@ -1,18 +1,23 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { ShoppingCart, Package, BarChart3, LogOut, Store } from "lucide-react";
+import { ShoppingCart, Package, BarChart3, LogOut, Store, Users } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { useRole } from "@/hooks/useRole";
 
-const nav = [
-  { to: "/pos", label: "POS", icon: ShoppingCart },
-  { to: "/products", label: "Products", icon: Package },
-  { to: "/reports", label: "Reports", icon: BarChart3 },
+const allNav = [
+  { to: "/pos", label: "POS", icon: ShoppingCart, roles: ["owner", "manager", "cashier"] as const },
+  { to: "/products", label: "Products", icon: Package, roles: ["owner", "manager"] as const },
+  { to: "/reports", label: "Reports", icon: BarChart3, roles: ["owner", "manager"] as const },
+  { to: "/staff", label: "Staff", icon: Users, roles: ["owner"] as const },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
+  const { role } = useRole();
+
+  const nav = allNav.filter((n) => (n.roles as readonly string[]).includes(role));
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -29,16 +34,24 @@ export function AppShell({ children }: { children: ReactNode }) {
             </span>
             <span>MboaPOS</span>
           </Link>
-          <Button variant="ghost" size="sm" onClick={signOut}>
-            <LogOut className="h-4 w-4 mr-1" /> Sign out
-          </Button>
+          <div className="flex items-center gap-2">
+            <span className="hidden sm:inline text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground capitalize">
+              {role}
+            </span>
+            <Button variant="ghost" size="sm" onClick={signOut}>
+              <LogOut className="h-4 w-4 mr-1" /> Sign out
+            </Button>
+          </div>
         </div>
       </header>
 
       <main className="flex-1 mx-auto w-full max-w-6xl px-4 py-4 pb-24">{children}</main>
 
       <nav className="fixed bottom-0 inset-x-0 z-30 border-t border-border bg-card/95 backdrop-blur md:hidden">
-        <div className="mx-auto grid max-w-6xl grid-cols-3">
+        <div
+          className="mx-auto grid max-w-6xl"
+          style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}
+        >
           {nav.map((n) => {
             const active = pathname.startsWith(n.to);
             const Icon = n.icon;
