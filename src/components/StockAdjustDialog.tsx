@@ -36,7 +36,7 @@ export function StockAdjustDialog({
         _product_id: productId,
         _delta: delta,
         _reason: reason,
-        _note: note || null,
+        _note: note || undefined,
       });
       if (error) throw error;
     },

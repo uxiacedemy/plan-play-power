@@ -16,6 +16,8 @@ import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated.
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated.reports'
 import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated.products'
 import { Route as AuthenticatedPosRouteImport } from './routes/_authenticated.pos'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
+import { Route as AuthenticatedReceiptSaleIdRouteImport } from './routes/_authenticated.receipt.$saleId'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -51,47 +53,82 @@ const AuthenticatedPosRoute = AuthenticatedPosRouteImport.update({
   path: '/pos',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedReceiptSaleIdRoute =
+  AuthenticatedReceiptSaleIdRouteImport.update({
+    id: '/receipt/$saleId',
+    path: '/receipt/$saleId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/pos': typeof AuthenticatedPosRoute
   '/products': typeof AuthenticatedProductsRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/staff': typeof AuthenticatedStaffRoute
+  '/receipt/$saleId': typeof AuthenticatedReceiptSaleIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/pos': typeof AuthenticatedPosRoute
   '/products': typeof AuthenticatedProductsRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/staff': typeof AuthenticatedStaffRoute
+  '/receipt/$saleId': typeof AuthenticatedReceiptSaleIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/pos': typeof AuthenticatedPosRoute
   '/_authenticated/products': typeof AuthenticatedProductsRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRoute
+  '/_authenticated/receipt/$saleId': typeof AuthenticatedReceiptSaleIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/pos' | '/products' | '/reports' | '/staff'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/pos'
+    | '/products'
+    | '/reports'
+    | '/staff'
+    | '/receipt/$saleId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/pos' | '/products' | '/reports' | '/staff'
+  to:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/pos'
+    | '/products'
+    | '/reports'
+    | '/staff'
+    | '/receipt/$saleId'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/dashboard'
     | '/_authenticated/pos'
     | '/_authenticated/products'
     | '/_authenticated/reports'
     | '/_authenticated/staff'
+    | '/_authenticated/receipt/$saleId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -151,21 +188,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPosRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/receipt/$saleId': {
+      id: '/_authenticated/receipt/$saleId'
+      path: '/receipt/$saleId'
+      fullPath: '/receipt/$saleId'
+      preLoaderRoute: typeof AuthenticatedReceiptSaleIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedPosRoute: typeof AuthenticatedPosRoute
   AuthenticatedProductsRoute: typeof AuthenticatedProductsRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedStaffRoute: typeof AuthenticatedStaffRoute
+  AuthenticatedReceiptSaleIdRoute: typeof AuthenticatedReceiptSaleIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedPosRoute: AuthenticatedPosRoute,
   AuthenticatedProductsRoute: AuthenticatedProductsRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedStaffRoute: AuthenticatedStaffRoute,
+  AuthenticatedReceiptSaleIdRoute: AuthenticatedReceiptSaleIdRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -180,13 +235,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
