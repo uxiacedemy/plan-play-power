@@ -1,11 +1,12 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { ShoppingCart, Package, BarChart3, LogOut, Store, Users } from "lucide-react";
+import { ShoppingCart, Package, BarChart3, LogOut, Store, Users, LayoutDashboard } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useRole } from "@/hooks/useRole";
 
 const allNav = [
+  { to: "/dashboard", label: "Home", icon: LayoutDashboard, roles: ["owner", "manager", "cashier"] as const },
   { to: "/pos", label: "POS", icon: ShoppingCart, roles: ["owner", "manager", "cashier"] as const },
   { to: "/products", label: "Products", icon: Package, roles: ["owner", "manager"] as const },
   { to: "/reports", label: "Reports", icon: BarChart3, roles: ["owner", "manager"] as const },
@@ -28,7 +29,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen flex flex-col bg-background">
       <header className="sticky top-0 z-30 border-b border-border bg-card/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <Link to="/pos" className="flex items-center gap-2 font-bold text-lg">
+          <Link to="/dashboard" className="flex items-center gap-2 font-bold text-lg">
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
               <Store className="h-4 w-4" />
             </span>

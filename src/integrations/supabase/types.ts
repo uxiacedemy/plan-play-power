@@ -188,6 +188,47 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_movements: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          delta: number
+          id: string
+          note: string | null
+          product_id: string
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          delta: number
+          id?: string
+          note?: string | null
+          product_id: string
+          reason: string
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          delta?: number
+          id?: string
+          note?: string | null
+          product_id?: string
+          reason?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -214,6 +255,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      adjust_stock: {
+        Args: {
+          _delta: number
+          _note?: string
+          _product_id: string
+          _reason: string
+        }
+        Returns: undefined
+      }
       can_manage_inventory: { Args: never; Returns: boolean }
       checkout_sale: {
         Args: { _items: Json; _payment_method: string }

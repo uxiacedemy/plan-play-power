@@ -92,3 +92,18 @@
   * { border-color: var(--color-border); }
   body { background-color: var(--color-background); color: var(--color-foreground); font-family: var(--font-sans); }
 }
+
+@media print {
+  @page { size: 80mm auto; margin: 4mm; }
+  body { background: white !important; }
+  body * { visibility: hidden; }
+  .receipt, .receipt * { visibility: visible; }
+  .receipt {
+    position: absolute; left: 0; top: 0;
+    width: 72mm; max-width: 72mm;
+    border: 0 !important; box-shadow: none !important;
+    padding: 0 !important; margin: 0 !important;
+    color: black !important; background: white !important;
+  }
+}
+
