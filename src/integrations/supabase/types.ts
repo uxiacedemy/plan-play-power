@@ -139,6 +139,7 @@ export type Database = {
       }
       sales: {
         Row: {
+          cashier_id: string | null
           created_at: string
           id: string
           payment_method: string
@@ -146,6 +147,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          cashier_id?: string | null
           created_at?: string
           id?: string
           payment_method?: string
@@ -153,11 +155,36 @@ export type Database = {
           user_id: string
         }
         Update: {
+          cashier_id?: string | null
           created_at?: string
           id?: string
           payment_method?: string
           total?: number
           user_id?: string
+        }
+        Relationships: []
+      }
+      shop_members: {
+        Row: {
+          created_at: string
+          id: string
+          member_id: string
+          owner_id: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          member_id: string
+          owner_id: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          member_id?: string
+          owner_id?: string
+          role?: Database["public"]["Enums"]["app_role"]
         }
         Relationships: []
       }
@@ -187,9 +214,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_manage_inventory: { Args: never; Returns: boolean }
       checkout_sale: {
         Args: { _items: Json; _payment_method: string }
         Returns: string
+      }
+      current_shop_owner: { Args: never; Returns: string }
+      current_user_role: {
+        Args: never
+        Returns: Database["public"]["Enums"]["app_role"]
       }
       has_role: {
         Args: {
