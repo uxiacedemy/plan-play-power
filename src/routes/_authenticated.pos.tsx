@@ -1,13 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Plus, Minus, Trash2, ShoppingCart, X } from "lucide-react";
+import { Search, Plus, Minus, Trash2, ShoppingCart, X, ScanLine } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { BarcodeScanner } from "@/components/BarcodeScanner";
 import { formatXAF } from "@/lib/format";
 import { toast } from "sonner";
 
@@ -27,12 +28,24 @@ type Product = {
 
 type CartItem = { product: Product; qty: number };
 
+const CART_KEY = "mboapos.cart.v1";
+
 function POSPage() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [category, setCategory] = useState<string>("__all");
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    if (typeof window === "undefined") return [];
+    try { return JSON.parse(localStorage.getItem(CART_KEY) ?? "[]"); } catch { return []; }
+  });
   const [payment, setPayment] = useState("cash");
   const [showCart, setShowCart] = useState(false);
+  const [scanOpen, setScanOpen] = useState(false);
+
+  useEffect(() => {
+    try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch { /* ignore */ }
+  }, [cart]);
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["products"],
@@ -46,16 +59,24 @@ function POSPage() {
     },
   });
 
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    products.forEach((p) => { if (p.category) set.add(p.category); });
+    return Array.from(set).sort();
+  }, [products]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return products;
-    return products.filter(
-      (p) =>
+    return products.filter((p) => {
+      if (category !== "__all" && p.category !== category) return false;
+      if (!q) return true;
+      return (
         p.name.toLowerCase().includes(q) ||
         (p.barcode ?? "").toLowerCase().includes(q) ||
-        (p.category ?? "").toLowerCase().includes(q),
-    );
-  }, [products, search]);
+        (p.category ?? "").toLowerCase().includes(q)
+      );
+    });
+  }, [products, search, category]);
 
   const total = cart.reduce((s, i) => s + i.product.selling_price * i.qty, 0);
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
@@ -76,6 +97,16 @@ function POSPage() {
       }
       return [...c, { product: p, qty: 1 }];
     });
+  };
+
+  const onBarcode = (code: string) => {
+    const match = products.find((p) => p.barcode === code);
+    if (!match) {
+      toast.error(`No product with barcode ${code}`);
+      return;
+    }
+    addToCart(match);
+    toast.success(`Added ${match.name}`);
   };
 
   const setQty = (id: string, qty: number) => {
@@ -101,12 +132,15 @@ function POSPage() {
       if (error) throw error;
       return data as string;
     },
-    onSuccess: () => {
+    onSuccess: (saleId) => {
       toast.success(`Sale completed — ${formatXAF(total)}`);
       setCart([]);
       setShowCart(false);
+      try { localStorage.removeItem(CART_KEY); } catch { /* ignore */ }
       qc.invalidateQueries({ queryKey: ["products"] });
       qc.invalidateQueries({ queryKey: ["sales-today"] });
+      qc.invalidateQueries({ queryKey: ["dashboard-today"] });
+      navigate({ to: "/receipt/$saleId", params: { saleId } });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Checkout failed"),
   });
@@ -114,22 +148,36 @@ function POSPage() {
   return (
     <div className="grid md:grid-cols-[1fr_22rem] gap-4">
       <section>
-        <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by name, barcode, category…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-11"
-            autoFocus
-          />
+        <div className="flex gap-2 mb-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name, barcode, category…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 h-11"
+              autoFocus
+            />
+          </div>
+          <Button variant="outline" className="h-11" onClick={() => setScanOpen(true)}>
+            <ScanLine className="h-4 w-4" />
+          </Button>
         </div>
+
+        {categories.length > 0 && (
+          <div className="flex gap-1.5 overflow-x-auto pb-2 mb-2 -mx-1 px-1 scrollbar-none">
+            <CatChip active={category === "__all"} onClick={() => setCategory("__all")}>All</CatChip>
+            {categories.map((c) => (
+              <CatChip key={c} active={category === c} onClick={() => setCategory(c)}>{c}</CatChip>
+            ))}
+          </div>
+        )}
 
         {isLoading ? (
           <p className="text-muted-foreground text-sm">Loading products…</p>
         ) : filtered.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border p-8 text-center text-muted-foreground text-sm">
-            No products. Add some in the Products tab.
+            No products match. {products.length === 0 && "Add some in the Products tab."}
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
@@ -226,6 +274,23 @@ function POSPage() {
           {cartCount} · {formatXAF(total)}
         </button>
       )}
+
+      <BarcodeScanner open={scanOpen} onOpenChange={setScanOpen} onDetected={onBarcode} />
     </div>
+  );
+}
+
+function CatChip({
+  active, onClick, children,
+}: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition ${
+        active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/70"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
