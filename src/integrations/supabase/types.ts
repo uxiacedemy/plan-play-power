@@ -14,50 +14,104 @@ export type Database = {
   }
   public: {
     Tables: {
+      categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           barcode: string | null
+          brand: string | null
           category: string | null
+          category_id: string | null
           cost_price: number
           created_at: string
+          expiry_date: string | null
           id: string
+          image_url: string | null
           name: string
           quantity: number
           reorder_level: number
           selling_price: number
+          supplier_id: string | null
+          tax_rate: number
           unit: string
           updated_at: string
           user_id: string
         }
         Insert: {
           barcode?: string | null
+          brand?: string | null
           category?: string | null
+          category_id?: string | null
           cost_price?: number
           created_at?: string
+          expiry_date?: string | null
           id?: string
+          image_url?: string | null
           name: string
           quantity?: number
           reorder_level?: number
           selling_price?: number
+          supplier_id?: string | null
+          tax_rate?: number
           unit?: string
           updated_at?: string
           user_id: string
         }
         Update: {
           barcode?: string | null
+          brand?: string | null
           category?: string | null
+          category_id?: string | null
           cost_price?: number
           created_at?: string
+          expiry_date?: string | null
           id?: string
+          image_url?: string | null
           name?: string
           quantity?: number
           reorder_level?: number
           selling_price?: number
+          supplier_id?: string | null
+          tax_rate?: number
           unit?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -228,6 +282,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
