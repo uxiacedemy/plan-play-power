@@ -1,66 +1,49 @@
-# Phase 3 — MVP Completion (web-adapted)
+# Remaining-Gaps Roadmap (Phase 4 → 8)
 
-The PDF targets Flutter + NestJS. Our stack is TanStack Start + Lovable Cloud, so I'm mapping the MVP checklist to web equivalents and dropping the items that only exist on native (Flutter SDK setup, FCM push, Bluetooth thermal printers, Play Store APK).
+You asked for everything still missing from the Phase 1 & 2 PDFs. That's a lot — I'll group it into 5 shippable phases so each one is reviewable and the app stays working between them.
 
-Already shipped in Phase 1–2: auth, products CRUD, POS checkout, stock deduction, daily reports, multi-user roles.
+## Phase 4 — Product model upgrade & Suppliers
+Foundation for profit reports, expiry alerts, and supplier tracking.
 
-## What this phase adds
+- **DB migration**: add to `products` — `brand`, `cost_price numeric`, `supplier_id uuid`, `expiry_date date`, `reorder_level int default 5`, `unit text default 'pcs'`, `tax_rate numeric default 0`, `image_url text`. Backfill `reorder_level=5`.
+- **New tables**: `categories` (id, user_id, name, unique per shop) + `suppliers` (id, user_id, name, phone, email, address, notes). Full RLS via `current_shop_owner()`, GRANTs.
+- **Migrate `products.category` text** → `category_id` FK (keep old col for one release, dual-write).
+- **UI**: Product form gets brand, cost, supplier picker, expiry, reorder level, unit, tax, image upload (Lovable Cloud storage bucket `product-images`). New `/suppliers` route (manager+). New `/categories` route.
+- **Bulk import**: CSV upload on Products page → preview → commit (manager+).
 
-### 1. Product enhancements
-- **Categories**: add `category` filter chips on Products + POS; existing `category` column already exists.
-- **Barcode scanning** (camera): integrate `@zxing/browser` for in-browser scanning on POS and Product form. Manual entry already works.
-- **Validation rules**: unique barcode per shop, non-negative price/qty (DB constraints + form validation).
+## Phase 5 — Customers, Credit & Loyalty
+Whole module currently missing.
 
-### 2. Receipts
-- Printable receipt view at `/receipt/$saleId` (browser print → works with thermal printers via OS print dialog).
-- Shows: shop name, items, qty, unit price, line total, grand total, payment method, sale ID, date.
-- "Print" + "Share via WhatsApp" (wa.me deep link with text summary) buttons.
-- After checkout, redirect/open receipt automatically.
+- **DB**: `customers` (name, phone, email, address, notes, loyalty_points), `customer_credits` (customer_id, sale_id, amount, type debt/payment, balance_after), trigger to update running balance.
+- **POS**: optional "Attach customer" step before checkout; payment method gains `credit` option (only if customer attached).
+- **Sales schema**: add `customer_id`, `discount`, `tax_total`, `subtotal`, `notes` to `sales`; per-line `discount` on `sale_items`. Update `checkout_sale` RPC.
+- **Routes**: `/customers` list + detail (purchase history, outstanding debt, "Record payment" dialog, loyalty points balance).
+- **WhatsApp**: "Send statement" deep-link from customer detail.
 
-### 3. Inventory module
-- **Stock adjustments**: new `stock_movements` table logging every change (sale, manual add, manual remove, adjustment) with reason + user.
-- **Low-stock alerts**: dashboard banner + Products page badge when `quantity <= reorder_level`.
-- Manual "Add stock" / "Adjust stock" dialog on Product row (manager+ only).
+## Phase 6 — Reports v2, Settings & i18n
+- **Reports**: tabs for Daily / Weekly / Monthly / Custom range. Cards: revenue, # transactions, profit (selling − cost), top products, payment-method breakdown, employee performance, inventory valuation, expiring-soon list.
+- **Expenses**: `expenses` table (category, amount, date, note, recorded_by) + `/expenses` route. Subtracted in profit report.
+- **Export**: PDF (`jspdf`) + Excel (`xlsx`) buttons on each report.
+- **Settings route** `/settings`: shop name, currency (XAF default, configurable), language (EN/FR), tax rate default, receipt header/footer text, low-stock threshold default, notification prefs.
+- **i18n**: `react-i18next` with `en.json` / `fr.json`, language switcher in AppShell, persisted in profile.
 
-### 4. POS resilience
-- Optimistic cart state in `localStorage` so a page refresh mid-sale doesn't lose the cart.
-- Clear error messages on checkout failure (insufficient stock, network).
-- Product lookup uses client-side index for sub-second search.
+## Phase 7 — Multi-branch & Notifications
+- **DB**: `branches` (shop_id, name, address, phone). Add `branch_id` to `products`, `sales`, `stock_movements`. Migration backfills a default "Main" branch per shop.
+- **RLS**: extend `current_shop_owner()` chain to scope by branch where the staff member is assigned. `shop_members` gains `branch_id` (nullable = all branches).
+- **UI**: branch switcher in AppShell, branch selector on staff invite, inter-branch stock transfer dialog (creates two `stock_movements` rows).
+- **Notifications center**: `notifications` table + bell icon in AppShell. Triggers for low stock, expiry within 30d, daily sales summary (pg_cron job hitting `/api/public/cron/daily-summary`), sync-failure alerts.
 
-### 5. Dashboard landing
-- `/` (authenticated) becomes a dashboard: today's sales total, # transactions, low-stock count, quick links.
+## Phase 8 — Offline-first PWA
+- Install `vite-plugin-pwa`, add manifest + service worker, app icon set.
+- IndexedDB queue (`idb-keyval`) for offline sales; background sync flushes via `checkout_sale` when online. Conflict resolution = server wins on stock, local sale gets `synced_at`.
+- Offline banner + per-sale sync status badge in transaction history.
+- "Install app" prompt on auth + dashboard.
 
-## Out of scope (deferred / not applicable)
+## Out of scope (web platform can't do these)
+Flutter, native Android APK, Bluetooth thermal printer SDK, FCM push (web push only via service worker — covered in Phase 8 if you want).
 
-- Flutter app, Android Studio, APK builds — wrong stack.
-- Firebase Cloud Messaging push — web equivalent would be Web Push; deferring to Phase 4.
-- Bluetooth thermal printer SDK — browsers can print to thermal printers via OS print dialog (CSS `@page` sized for 58/80mm), which we will set up. Direct Web Bluetooth integration deferred.
-- Full offline-first sync engine with conflict resolver — significant work; Phase 1 already requires connectivity. We add cart persistence + clear offline error UI here, full sync engine deferred to Phase 4.
-- Analytics (Sentry/Firebase) — Phase 4.
-
-## Technical details
-
-**New tables (migration):**
-- `stock_movements` (id, user_id=owner, product_id, delta int, reason text, note text, actor_id, created_at) — RLS scoped via `current_shop_owner()`, insertable by `can_manage_inventory()`.
-- Add unique partial index on `products (user_id, barcode) where barcode is not null`.
-- Add CHECK constraints: `selling_price >= 0`, `cost_price >= 0`, `quantity >= 0`.
-- Trigger on `sale_items` insert → write `stock_movements` row with `reason='sale'`.
-
-**New server fns** (`src/lib/inventory.functions.ts`):
-- `adjustStock({ product_id, delta, reason, note })` — security definer or RLS-policied update + movement log.
-- `listMovements({ product_id? })`.
-
-**New routes:**
-- `src/routes/_authenticated.index.tsx` — dashboard (replaces redirect).
-- `src/routes/_authenticated.receipt.$saleId.tsx` — printable receipt.
-- Keep existing `pos`, `products`, `reports`, `staff`.
-
-**New components:**
-- `BarcodeScanner.tsx` — `@zxing/browser` wrapper with camera picker.
-- `LowStockBadge.tsx`.
-- `StockAdjustDialog.tsx`.
-- `ReceiptPrintable.tsx` with print-only CSS (`@page { size: 80mm auto }`).
-
-**Packages to add:** `@zxing/browser`, `@zxing/library`.
-
-Once you approve, I'll implement in this order: DB migration → inventory fns → receipt route → barcode scanner → dashboard → POS polish.
+## Suggested execution
+Ship phases in order — each one is ~1 working session and leaves the app fully usable. **Reply with one of**:
+- `go` → I start Phase 4 now and chain through to 8.
+- `4 only`, `4 and 5`, etc. → I stop after the named phases.
+- Any edits to scope.
