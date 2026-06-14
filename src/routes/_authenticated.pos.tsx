@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Plus, Minus, Trash2, ShoppingCart, X, ScanLine } from "lucide-react";
+import { Search, Plus, Minus, Trash2, ShoppingCart, X, ScanLine, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ import {
 import { BarcodeScanner } from "@/components/BarcodeScanner";
 import { formatXAF } from "@/lib/format";
 import { toast } from "sonner";
+
+type CustomerOpt = { id: string; name: string; phone: string | null };
 
 export const Route = createFileRoute("/_authenticated/pos")({
   head: () => ({ meta: [{ title: "POS — MboaPOS" }] }),
