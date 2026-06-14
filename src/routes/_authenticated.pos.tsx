@@ -44,10 +44,24 @@ function POSPage() {
   const [payment, setPayment] = useState("cash");
   const [showCart, setShowCart] = useState(false);
   const [scanOpen, setScanOpen] = useState(false);
+  const [customerId, setCustomerId] = useState<string>("__none");
+  const [discountStr, setDiscountStr] = useState("0");
 
   useEffect(() => {
     try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch { /* ignore */ }
   }, [cart]);
+
+  const { data: customers = [] } = useQuery({
+    queryKey: ["customers-min"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("customers")
+        .select("id,name,phone")
+        .order("name");
+      if (error) throw error;
+      return data as CustomerOpt[];
+    },
+  });
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["products"],
