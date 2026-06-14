@@ -271,6 +271,32 @@ function POSPage() {
           </div>
 
           <div className="border-t border-border pt-3 space-y-3">
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground flex items-center gap-1">
+                <User className="h-3 w-3" /> Customer
+              </label>
+              <Select value={customerId} onValueChange={setCustomerId}>
+                <SelectTrigger><SelectValue placeholder="Walk-in customer" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none">Walk-in customer</SelectItem>
+                  {customers.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}{c.phone ? ` · ${c.phone}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Discount (XAF)</label>
+              <Input
+                type="number" min={0} inputMode="numeric"
+                value={discountStr}
+                onChange={(e) => setDiscountStr(e.target.value)}
+              />
+            </div>
+
             <Select value={payment} onValueChange={setPayment}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -278,11 +304,26 @@ function POSPage() {
                 <SelectItem value="mtn_momo">MTN Mobile Money</SelectItem>
                 <SelectItem value="orange_money">Orange Money</SelectItem>
                 <SelectItem value="bank">Bank transfer</SelectItem>
+                <SelectItem value="credit" disabled={customerId === "__none"}>
+                  Credit (debt){customerId === "__none" ? " — select customer" : ""}
+                </SelectItem>
               </SelectContent>
             </Select>
-            <div className="flex items-center justify-between text-lg font-bold">
-              <span>Total</span><span className="text-primary">{formatXAF(total)}</span>
+
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between text-muted-foreground">
+                <span>Subtotal</span><span>{formatXAF(subtotal)}</span>
+              </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Discount</span><span>−{formatXAF(discount)}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between text-lg font-bold pt-1">
+                <span>Total</span><span className="text-primary">{formatXAF(total)}</span>
+              </div>
             </div>
+
             <Button
               className="w-full h-12 text-base"
               disabled={cart.length === 0 || checkout.isPending}
