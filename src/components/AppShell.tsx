@@ -1,5 +1,5 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { ShoppingCart, Package, BarChart3, LogOut, Store, Users, LayoutDashboard, Truck } from "lucide-react";
+import { ShoppingCart, Package, BarChart3, LogOut, Store, Users, LayoutDashboard, Truck, UserRound } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
