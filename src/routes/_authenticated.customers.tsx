@@ -305,7 +305,7 @@ function CustomerDetailDialog({
         _customer_id: customer!.id,
         _amount: amt,
         _payment_method: method,
-        _note: note || null,
+        _note: note || undefined,
       });
       if (error) throw error;
     },
