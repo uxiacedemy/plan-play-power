@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Plus, Minus, Trash2, ShoppingCart, X, ScanLine } from "lucide-react";
+import { Search, Plus, Minus, Trash2, ShoppingCart, X, ScanLine, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ import {
 import { BarcodeScanner } from "@/components/BarcodeScanner";
 import { formatXAF } from "@/lib/format";
 import { toast } from "sonner";
+
+type CustomerOpt = { id: string; name: string; phone: string | null };
 
 export const Route = createFileRoute("/_authenticated/pos")({
   head: () => ({ meta: [{ title: "POS — MboaPOS" }] }),
@@ -42,10 +44,24 @@ function POSPage() {
   const [payment, setPayment] = useState("cash");
   const [showCart, setShowCart] = useState(false);
   const [scanOpen, setScanOpen] = useState(false);
+  const [customerId, setCustomerId] = useState<string>("__none");
+  const [discountStr, setDiscountStr] = useState("0");
 
   useEffect(() => {
     try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch { /* ignore */ }
   }, [cart]);
+
+  const { data: customers = [] } = useQuery({
+    queryKey: ["customers-min"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("customers")
+        .select("id,name,phone")
+        .order("name");
+      if (error) throw error;
+      return data as CustomerOpt[];
+    },
+  });
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["products"],
@@ -78,7 +94,9 @@ function POSPage() {
     });
   }, [products, search, category]);
 
-  const total = cart.reduce((s, i) => s + i.product.selling_price * i.qty, 0);
+  const subtotal = cart.reduce((s, i) => s + i.product.selling_price * i.qty, 0);
+  const discount = Math.max(0, Math.min(subtotal, Number(discountStr) || 0));
+  const total = Math.max(0, subtotal - discount);
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
   const addToCart = (p: Product) => {
@@ -125,9 +143,16 @@ function POSPage() {
 
   const checkout = useMutation({
     mutationFn: async () => {
+      if (payment === "credit" && customerId === "__none") {
+        throw new Error("Select a customer to sell on credit");
+      }
       const { data, error } = await supabase.rpc("checkout_sale", {
         _items: cart.map((i) => ({ product_id: i.product.id, quantity: i.qty })),
         _payment_method: payment,
+        _customer_id: customerId === "__none" ? null : customerId,
+        _discount: discount,
+        _tax_total: 0,
+        _notes: undefined,
       });
       if (error) throw error;
       return data as string;
@@ -136,10 +161,14 @@ function POSPage() {
       toast.success(`Sale completed — ${formatXAF(total)}`);
       setCart([]);
       setShowCart(false);
+      setDiscountStr("0");
+      setCustomerId("__none");
       try { localStorage.removeItem(CART_KEY); } catch { /* ignore */ }
       qc.invalidateQueries({ queryKey: ["products"] });
       qc.invalidateQueries({ queryKey: ["sales-today"] });
       qc.invalidateQueries({ queryKey: ["dashboard-today"] });
+      qc.invalidateQueries({ queryKey: ["customers-min"] });
+      qc.invalidateQueries({ queryKey: ["customers-full"] });
       navigate({ to: "/receipt/$saleId", params: { saleId } });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Checkout failed"),
@@ -242,6 +271,32 @@ function POSPage() {
           </div>
 
           <div className="border-t border-border pt-3 space-y-3">
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground flex items-center gap-1">
+                <User className="h-3 w-3" /> Customer
+              </label>
+              <Select value={customerId} onValueChange={setCustomerId}>
+                <SelectTrigger><SelectValue placeholder="Walk-in customer" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none">Walk-in customer</SelectItem>
+                  {customers.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}{c.phone ? ` · ${c.phone}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Discount (XAF)</label>
+              <Input
+                type="number" min={0} inputMode="numeric"
+                value={discountStr}
+                onChange={(e) => setDiscountStr(e.target.value)}
+              />
+            </div>
+
             <Select value={payment} onValueChange={setPayment}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -249,11 +304,26 @@ function POSPage() {
                 <SelectItem value="mtn_momo">MTN Mobile Money</SelectItem>
                 <SelectItem value="orange_money">Orange Money</SelectItem>
                 <SelectItem value="bank">Bank transfer</SelectItem>
+                <SelectItem value="credit" disabled={customerId === "__none"}>
+                  Credit (debt){customerId === "__none" ? " — select customer" : ""}
+                </SelectItem>
               </SelectContent>
             </Select>
-            <div className="flex items-center justify-between text-lg font-bold">
-              <span>Total</span><span className="text-primary">{formatXAF(total)}</span>
+
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between text-muted-foreground">
+                <span>Subtotal</span><span>{formatXAF(subtotal)}</span>
+              </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Discount</span><span>−{formatXAF(discount)}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between text-lg font-bold pt-1">
+                <span>Total</span><span className="text-primary">{formatXAF(total)}</span>
+              </div>
             </div>
+
             <Button
               className="w-full h-12 text-base"
               disabled={cart.length === 0 || checkout.isPending}

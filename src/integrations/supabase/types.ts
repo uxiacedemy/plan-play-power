@@ -35,6 +35,92 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_credits: {
+        Row: {
+          actor_id: string | null
+          amount: number
+          created_at: string
+          customer_id: string
+          entry_type: string
+          id: string
+          note: string | null
+          payment_method: string | null
+          sale_id: string | null
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          amount: number
+          created_at?: string
+          customer_id: string
+          entry_type: string
+          id?: string
+          note?: string | null
+          payment_method?: string | null
+          sale_id?: string | null
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          amount?: number
+          created_at?: string
+          customer_id?: string
+          entry_type?: string
+          id?: string
+          note?: string | null
+          payment_method?: string | null
+          sale_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_credits_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customers: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string | null
+          id: string
+          loyalty_points: number
+          name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          loyalty_points?: number
+          name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          loyalty_points?: number
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           barcode: string | null
@@ -145,6 +231,7 @@ export type Database = {
       }
       sale_items: {
         Row: {
+          discount: number
           id: string
           line_total: number
           name_snapshot: string
@@ -155,6 +242,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          discount?: number
           id?: string
           line_total: number
           name_snapshot: string
@@ -165,6 +253,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          discount?: number
           id?: string
           line_total?: number
           name_snapshot?: string
@@ -195,28 +284,51 @@ export type Database = {
         Row: {
           cashier_id: string | null
           created_at: string
+          customer_id: string | null
+          discount: number
           id: string
+          notes: string | null
           payment_method: string
+          subtotal: number
+          tax_total: number
           total: number
           user_id: string
         }
         Insert: {
           cashier_id?: string | null
           created_at?: string
+          customer_id?: string | null
+          discount?: number
           id?: string
+          notes?: string | null
           payment_method?: string
+          subtotal?: number
+          tax_total?: number
           total: number
           user_id: string
         }
         Update: {
           cashier_id?: string | null
           created_at?: string
+          customer_id?: string | null
+          discount?: number
           id?: string
+          notes?: string | null
           payment_method?: string
+          subtotal?: number
+          tax_total?: number
           total?: number
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "sales_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       shop_members: {
         Row: {
@@ -355,10 +467,19 @@ export type Database = {
         Returns: undefined
       }
       can_manage_inventory: { Args: never; Returns: boolean }
-      checkout_sale: {
-        Args: { _items: Json; _payment_method: string }
-        Returns: string
-      }
+      checkout_sale:
+        | { Args: { _items: Json; _payment_method: string }; Returns: string }
+        | {
+            Args: {
+              _customer_id?: string
+              _discount?: number
+              _items: Json
+              _notes?: string
+              _payment_method: string
+              _tax_total?: number
+            }
+            Returns: string
+          }
       current_shop_owner: { Args: never; Returns: string }
       current_user_role: {
         Args: never
@@ -370,6 +491,15 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      record_customer_payment: {
+        Args: {
+          _amount: number
+          _customer_id: string
+          _note?: string
+          _payment_method: string
+        }
+        Returns: string
       }
     }
     Enums: {
