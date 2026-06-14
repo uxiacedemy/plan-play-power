@@ -143,9 +143,16 @@ function POSPage() {
 
   const checkout = useMutation({
     mutationFn: async () => {
+      if (payment === "credit" && customerId === "__none") {
+        throw new Error("Select a customer to sell on credit");
+      }
       const { data, error } = await supabase.rpc("checkout_sale", {
         _items: cart.map((i) => ({ product_id: i.product.id, quantity: i.qty })),
         _payment_method: payment,
+        _customer_id: customerId === "__none" ? null : customerId,
+        _discount: discount,
+        _tax_total: 0,
+        _notes: null,
       });
       if (error) throw error;
       return data as string;
@@ -154,10 +161,14 @@ function POSPage() {
       toast.success(`Sale completed — ${formatXAF(total)}`);
       setCart([]);
       setShowCart(false);
+      setDiscountStr("0");
+      setCustomerId("__none");
       try { localStorage.removeItem(CART_KEY); } catch { /* ignore */ }
       qc.invalidateQueries({ queryKey: ["products"] });
       qc.invalidateQueries({ queryKey: ["sales-today"] });
       qc.invalidateQueries({ queryKey: ["dashboard-today"] });
+      qc.invalidateQueries({ queryKey: ["customers-min"] });
+      qc.invalidateQueries({ queryKey: ["customers-full"] });
       navigate({ to: "/receipt/$saleId", params: { saleId } });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Checkout failed"),
