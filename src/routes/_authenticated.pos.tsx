@@ -94,7 +94,9 @@ function POSPage() {
     });
   }, [products, search, category]);
 
-  const total = cart.reduce((s, i) => s + i.product.selling_price * i.qty, 0);
+  const subtotal = cart.reduce((s, i) => s + i.product.selling_price * i.qty, 0);
+  const discount = Math.max(0, Math.min(subtotal, Number(discountStr) || 0));
+  const total = Math.max(0, subtotal - discount);
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
   const addToCart = (p: Product) => {
