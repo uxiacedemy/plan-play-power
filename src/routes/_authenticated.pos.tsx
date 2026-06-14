@@ -152,7 +152,7 @@ function POSPage() {
         _customer_id: customerId === "__none" ? null : customerId,
         _discount: discount,
         _tax_total: 0,
-        _notes: null,
+        _notes: undefined,
       });
       if (error) throw error;
       return data as string;
