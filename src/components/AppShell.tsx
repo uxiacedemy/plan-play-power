@@ -1,9 +1,10 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { ShoppingCart, Package, BarChart3, LogOut, Store, Users, LayoutDashboard, Truck, UserRound } from "lucide-react";
+import { ShoppingCart, Package, BarChart3, LogOut, Store, Users, LayoutDashboard, Truck, UserRound, Settings, Wallet } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useRole } from "@/hooks/useRole";
+import { NotificationsBell } from "./NotificationsBell";
 
 const allNav = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard, roles: ["owner", "manager", "cashier"] as const },
@@ -11,8 +12,10 @@ const allNav = [
   { to: "/products", label: "Products", icon: Package, roles: ["owner", "manager"] as const },
   { to: "/customers", label: "Customers", icon: UserRound, roles: ["owner", "manager", "cashier"] as const },
   { to: "/suppliers", label: "Suppliers", icon: Truck, roles: ["owner", "manager"] as const },
+  { to: "/expenses", label: "Expenses", icon: Wallet, roles: ["owner", "manager"] as const },
   { to: "/reports", label: "Reports", icon: BarChart3, roles: ["owner", "manager"] as const },
   { to: "/staff", label: "Staff", icon: Users, roles: ["owner"] as const },
+  { to: "/settings", label: "Settings", icon: Settings, roles: ["owner"] as const },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -37,7 +40,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             </span>
             <span>MboaPOS</span>
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            <NotificationsBell />
             <span className="hidden sm:inline text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground capitalize">
               {role}
             </span>
