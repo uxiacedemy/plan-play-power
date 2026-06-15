@@ -121,6 +121,75 @@ export type Database = {
         }
         Relationships: []
       }
+      expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          expense_date: string
+          id: string
+          note: string | null
+          recorded_by: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category?: string
+          created_at?: string
+          expense_date?: string
+          id?: string
+          note?: string | null
+          recorded_by?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          expense_date?: string
+          id?: string
+          note?: string | null
+          recorded_by?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          meta: Json | null
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          meta?: Json | null
+          read?: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          meta?: Json | null
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           barcode: string | null
@@ -201,30 +270,45 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
           created_at: string
           currency: string
           id: string
           language: string
+          low_stock_threshold: number
           phone: string | null
+          receipt_footer: string | null
+          receipt_header: string | null
           shop_name: string
+          tax_rate: number
           updated_at: string
         }
         Insert: {
+          address?: string | null
           created_at?: string
           currency?: string
           id: string
           language?: string
+          low_stock_threshold?: number
           phone?: string | null
+          receipt_footer?: string | null
+          receipt_header?: string | null
           shop_name?: string
+          tax_rate?: number
           updated_at?: string
         }
         Update: {
+          address?: string | null
           created_at?: string
           currency?: string
           id?: string
           language?: string
+          low_stock_threshold?: number
           phone?: string | null
+          receipt_footer?: string | null
+          receipt_header?: string | null
           shop_name?: string
+          tax_rate?: number
           updated_at?: string
         }
         Relationships: []
@@ -480,6 +564,16 @@ export type Database = {
             }
             Returns: string
           }
+      create_notification: {
+        Args: {
+          _body?: string
+          _meta?: Json
+          _title: string
+          _type: string
+          _user_id: string
+        }
+        Returns: string
+      }
       current_shop_owner: { Args: never; Returns: string }
       current_user_role: {
         Args: never
