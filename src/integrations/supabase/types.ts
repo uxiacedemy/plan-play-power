@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action_type: string
+          actor_id: string | null
+          created_at: string
+          entity: string | null
+          entity_id: string | null
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          actor_id?: string | null
+          created_at?: string
+          entity?: string | null
+          entity_id?: string | null
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          actor_id?: string | null
+          created_at?: string
+          entity?: string | null
+          entity_id?: string | null
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -271,45 +307,54 @@ export type Database = {
       profiles: {
         Row: {
           address: string | null
+          business_reg_no: string | null
           created_at: string
           currency: string
           id: string
           language: string
           low_stock_threshold: number
+          opening_float: number
           phone: string | null
           receipt_footer: string | null
           receipt_header: string | null
           shop_name: string
           tax_rate: number
           updated_at: string
+          vat_enabled: boolean
         }
         Insert: {
           address?: string | null
+          business_reg_no?: string | null
           created_at?: string
           currency?: string
           id: string
           language?: string
           low_stock_threshold?: number
+          opening_float?: number
           phone?: string | null
           receipt_footer?: string | null
           receipt_header?: string | null
           shop_name?: string
           tax_rate?: number
           updated_at?: string
+          vat_enabled?: boolean
         }
         Update: {
           address?: string | null
+          business_reg_no?: string | null
           created_at?: string
           currency?: string
           id?: string
           language?: string
           low_stock_threshold?: number
+          opening_float?: number
           phone?: string | null
           receipt_footer?: string | null
           receipt_header?: string | null
           shop_name?: string
           tax_rate?: number
           updated_at?: string
+          vat_enabled?: boolean
         }
         Relationships: []
       }
@@ -377,6 +422,9 @@ export type Database = {
           tax_total: number
           total: number
           user_id: string
+          void_reason: string | null
+          voided: boolean
+          voided_at: string | null
         }
         Insert: {
           cashier_id?: string | null
@@ -390,6 +438,9 @@ export type Database = {
           tax_total?: number
           total: number
           user_id: string
+          void_reason?: string | null
+          voided?: boolean
+          voided_at?: string | null
         }
         Update: {
           cashier_id?: string | null
@@ -403,6 +454,9 @@ export type Database = {
           tax_total?: number
           total?: number
           user_id?: string
+          void_reason?: string | null
+          voided?: boolean
+          voided_at?: string | null
         }
         Relationships: [
           {
@@ -594,6 +648,10 @@ export type Database = {
           _payment_method: string
         }
         Returns: string
+      }
+      void_sale: {
+        Args: { _reason: string; _sale_id: string }
+        Returns: undefined
       }
     }
     Enums: {
