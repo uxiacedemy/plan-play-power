@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Printer, MessageCircle, ArrowLeft } from "lucide-react";
+import { MessageCircle, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { formatXAF } from "@/lib/format";
+import { ThermalPrintButton } from "@/components/ThermalPrintButton";
+import type { ReceiptPayload } from "@/lib/escpos";
 
 export const Route = createFileRoute("/_authenticated/receipt/$saleId")({
   head: () => ({ meta: [{ title: "Receipt — MboaPOS" }] }),
@@ -58,9 +60,25 @@ function ReceiptPage() {
           <Button variant="outline" size="sm" onClick={shareWhatsApp}>
             <MessageCircle className="h-4 w-4 mr-1" /> WhatsApp
           </Button>
-          <Button size="sm" onClick={() => window.print()}>
-            <Printer className="h-4 w-4 mr-1" /> Print
-          </Button>
+          <ThermalPrintButton
+            payload={{
+              shopName: profile?.shop_name ?? "Shop",
+              shopPhone: profile?.phone ?? null,
+              saleId: sale.id,
+              date,
+              items: items.map((i) => ({
+                name: i.name_snapshot,
+                qty: Number(i.quantity),
+                unitPrice: Number(i.unit_price),
+                total: Number(i.line_total),
+              })),
+              subtotal: Number((sale as { subtotal?: number }).subtotal ?? sale.total),
+              discount: Number((sale as { discount?: number }).discount ?? 0),
+              tax: Number((sale as { tax_total?: number }).tax_total ?? 0),
+              total: Number(sale.total),
+              paymentMethod: sale.payment_method,
+            } satisfies ReceiptPayload}
+          />
         </div>
       </div>
 
