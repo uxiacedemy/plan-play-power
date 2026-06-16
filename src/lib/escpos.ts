@@ -11,7 +11,7 @@ const LF = 0x0a;
 // Common GATT services exposed by ESC/POS BT printers.
 // Most printers (Goojprt/Xprinter clones) use the 0xFF00 family;
 // some Bluetooth-SIG generic serial (Nordic UART) variants also exist.
-const PRINTER_SERVICES: BluetoothServiceUUID[] = [
+const PRINTER_SERVICES: (number | string)[] = [
   0xff00,
   0x18f0,
   0xfee7,
@@ -20,7 +20,7 @@ const PRINTER_SERVICES: BluetoothServiceUUID[] = [
   "6e400001-b5a3-f393-e0a9-e50e24dcca9e", // Nordic UART
 ];
 
-const WRITE_CHARS: BluetoothCharacteristicUUID[] = [
+const WRITE_CHARS: (number | string)[] = [
   0xff02,
   0x2af1,
   "00002af1-0000-1000-8000-00805f9b34fb",
