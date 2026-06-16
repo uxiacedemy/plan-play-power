@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Printer, MessageCircle, ArrowLeft } from "lucide-react";
+import { MessageCircle, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { formatXAF } from "@/lib/format";
+import { ThermalPrintButton } from "@/components/ThermalPrintButton";
+import type { ReceiptPayload } from "@/lib/escpos";
 
 export const Route = createFileRoute("/_authenticated/receipt/$saleId")({
   head: () => ({ meta: [{ title: "Receipt — MboaPOS" }] }),
