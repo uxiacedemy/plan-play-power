@@ -51,6 +51,21 @@ function POSPage() {
     try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch { /* ignore */ }
   }, [cart]);
 
+  // Keyboard shortcuts: F2 focus search, Esc clears cart
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "F2") {
+        e.preventDefault();
+        (document.querySelector<HTMLInputElement>('input[placeholder^="Search"]'))?.focus();
+      } else if (e.key === "Escape" && cart.length > 0) {
+        setCart([]);
+        toast("Cart cleared");
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [cart.length]);
+
   const { data: customers = [] } = useQuery({
     queryKey: ["customers-min"],
     queryFn: async () => {
