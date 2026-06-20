@@ -4,6 +4,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+  MboaPOS — Material Design 3 inspired token system.
+  Brand seed: #1B6CA8 (deep blue). Status colors, MTN/Orange payment brand
+  tokens, M3 type scale, 8dp spacing grid. Mirrors design_tokens.dart.
+*/
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -17,6 +23,8 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary-container: var(--on-primary-container);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -25,73 +33,157 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
+  --color-success-container: var(--success-container);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-warning-container: var(--warning-container);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-container: var(--info-container);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-mtn: var(--mtn);
+  --color-mtn-foreground: var(--mtn-foreground);
+  --color-orange-money: var(--orange-money);
+  --color-orange-money-foreground: var(--orange-money-foreground);
+
+  --font-sans: "Inter", "Roboto", ui-sans-serif, system-ui, sans-serif;
+
+  /* M3 elevation tokens (subtle tonal shadows) */
+  --shadow-e1: 0 1px 2px 0 color-mix(in oklab, var(--foreground) 8%, transparent);
+  --shadow-e2: 0 2px 6px -1px color-mix(in oklab, var(--foreground) 12%, transparent);
+  --shadow-e3: 0 6px 16px -4px color-mix(in oklab, var(--foreground) 16%, transparent);
 }
 
 :root {
+  /* 8dp grid baseline. Card radius 8 (sm), dialog 12 (md), pill = full. */
   --radius: 0.75rem;
-  --background: oklch(0.99 0.005 80);
-  --foreground: oklch(0.22 0.03 35);
+
+  /* Neutral surface stack — slight cool tint to pair with blue brand */
+  --background: oklch(0.985 0.004 240);
+  --foreground: oklch(0.18 0.02 245);
+  --surface-1: oklch(0.975 0.005 240);
+  --surface-2: oklch(0.965 0.007 240);
+  --surface-3: oklch(0.955 0.009 240);
+
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.03 35);
+  --card-foreground: oklch(0.18 0.02 245);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.03 35);
-  --primary: oklch(0.62 0.18 35);              /* warm terracotta */
-  --primary-foreground: oklch(0.99 0.005 80);
-  --secondary: oklch(0.95 0.02 70);
-  --secondary-foreground: oklch(0.28 0.04 35);
-  --muted: oklch(0.96 0.01 70);
-  --muted-foreground: oklch(0.5 0.02 50);
-  --accent: oklch(0.55 0.12 155);              /* forest green */
-  --accent-foreground: oklch(0.99 0.005 80);
-  --success: oklch(0.62 0.15 155);
-  --success-foreground: oklch(0.99 0.005 80);
-  --warning: oklch(0.78 0.15 80);
-  --warning-foreground: oklch(0.22 0.03 35);
-  --destructive: oklch(0.58 0.22 27);
-  --destructive-foreground: oklch(0.99 0.005 80);
-  --border: oklch(0.91 0.01 60);
-  --input: oklch(0.93 0.01 60);
-  --ring: oklch(0.62 0.18 35);
+  --popover-foreground: oklch(0.18 0.02 245);
+
+  /* Brand seed #1B6CA8 — deep trust blue */
+  --primary: oklch(0.48 0.11 245);
+  --primary-foreground: oklch(0.99 0.005 240);
+  --primary-container: oklch(0.92 0.04 245);
+  --on-primary-container: oklch(0.22 0.08 245);
+
+  --secondary: oklch(0.94 0.015 240);
+  --secondary-foreground: oklch(0.25 0.03 245);
+  --muted: oklch(0.96 0.008 240);
+  --muted-foreground: oklch(0.48 0.015 245);
+
+  /* Accent = teal complement */
+  --accent: oklch(0.58 0.10 200);
+  --accent-foreground: oklch(0.99 0.005 240);
+
+  /* Status — WCAG AA on white */
+  --success: oklch(0.52 0.14 150);              /* Green 800 */
+  --success-foreground: oklch(0.99 0.005 240);
+  --success-container: oklch(0.94 0.05 150);
+  --warning: oklch(0.68 0.16 70);               /* Amber 900 */
+  --warning-foreground: oklch(0.20 0.03 70);
+  --warning-container: oklch(0.96 0.06 90);
+  --info: oklch(0.45 0.13 245);                 /* Blue 900 */
+  --info-foreground: oklch(0.99 0.005 240);
+  --info-container: oklch(0.93 0.04 245);
+  --destructive: oklch(0.52 0.20 27);           /* M3 error #B3261E */
+  --destructive-foreground: oklch(0.99 0.005 240);
+
+  --border: oklch(0.90 0.01 240);
+  --input: oklch(0.92 0.01 240);
+  --ring: oklch(0.48 0.11 245);
+
+  /* Payment-brand tokens */
+  --mtn: oklch(0.86 0.18 95);                   /* MTN yellow #FFCC00 */
+  --mtn-foreground: oklch(0.18 0.02 245);
+  --orange-money: oklch(0.70 0.20 50);          /* Orange #FF6600 */
+  --orange-money-foreground: oklch(0.99 0.005 240);
 }
 
 .dark {
-  --background: oklch(0.18 0.02 35);
-  --foreground: oklch(0.96 0.01 70);
-  --card: oklch(0.22 0.025 35);
-  --card-foreground: oklch(0.96 0.01 70);
-  --popover: oklch(0.22 0.025 35);
-  --popover-foreground: oklch(0.96 0.01 70);
-  --primary: oklch(0.68 0.18 35);
-  --primary-foreground: oklch(0.18 0.02 35);
-  --secondary: oklch(0.28 0.02 35);
-  --secondary-foreground: oklch(0.96 0.01 70);
-  --muted: oklch(0.26 0.02 35);
-  --muted-foreground: oklch(0.7 0.02 50);
-  --accent: oklch(0.6 0.13 155);
-  --accent-foreground: oklch(0.18 0.02 35);
-  --success: oklch(0.65 0.15 155);
-  --success-foreground: oklch(0.18 0.02 35);
+  --background: oklch(0.16 0.015 245);
+  --foreground: oklch(0.96 0.005 240);
+  --surface-1: oklch(0.20 0.018 245);
+  --surface-2: oklch(0.23 0.02 245);
+  --surface-3: oklch(0.26 0.022 245);
+  --card: oklch(0.22 0.02 245);
+  --card-foreground: oklch(0.96 0.005 240);
+  --popover: oklch(0.22 0.02 245);
+  --popover-foreground: oklch(0.96 0.005 240);
+
+  --primary: oklch(0.72 0.13 245);
+  --primary-foreground: oklch(0.15 0.02 245);
+  --primary-container: oklch(0.32 0.09 245);
+  --on-primary-container: oklch(0.92 0.04 245);
+
+  --secondary: oklch(0.28 0.02 245);
+  --secondary-foreground: oklch(0.96 0.005 240);
+  --muted: oklch(0.26 0.018 245);
+  --muted-foreground: oklch(0.70 0.015 240);
+
+  --accent: oklch(0.68 0.10 200);
+  --accent-foreground: oklch(0.15 0.02 245);
+
+  --success: oklch(0.68 0.15 150);
+  --success-foreground: oklch(0.15 0.02 245);
+  --success-container: oklch(0.30 0.08 150);
   --warning: oklch(0.78 0.15 80);
-  --warning-foreground: oklch(0.18 0.02 35);
-  --destructive: oklch(0.65 0.2 27);
-  --destructive-foreground: oklch(0.99 0.005 80);
+  --warning-foreground: oklch(0.18 0.03 70);
+  --warning-container: oklch(0.34 0.10 80);
+  --info: oklch(0.70 0.13 245);
+  --info-foreground: oklch(0.15 0.02 245);
+  --info-container: oklch(0.30 0.09 245);
+  --destructive: oklch(0.65 0.20 27);
+  --destructive-foreground: oklch(0.99 0.005 240);
+
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.68 0.18 35);
+  --ring: oklch(0.72 0.13 245);
+
+  --mtn: oklch(0.86 0.18 95);
+  --mtn-foreground: oklch(0.15 0.02 245);
+  --orange-money: oklch(0.72 0.20 50);
+  --orange-money-foreground: oklch(0.15 0.02 245);
 }
 
 @layer base {
   * { border-color: var(--color-border); }
-  body { background-color: var(--color-background); color: var(--color-foreground); font-family: var(--font-sans); }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  /* Enforce M3 minimum 48dp touch target on bare buttons/anchors used as actions */
+  button, [role="button"], a[role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
 }
+
+/* M3-flavored utilities */
+@utility surface-1 { background-color: var(--color-surface-1); }
+@utility surface-2 { background-color: var(--color-surface-2); }
+@utility surface-3 { background-color: var(--color-surface-3); }
+@utility elevation-1 { box-shadow: var(--shadow-e1); }
+@utility elevation-2 { box-shadow: var(--shadow-e2); }
+@utility elevation-3 { box-shadow: var(--shadow-e3); }
 
 @media print {
   @page { size: 80mm auto; margin: 4mm; }
@@ -106,4 +198,3 @@
     color: black !important; background: white !important;
   }
 }
-

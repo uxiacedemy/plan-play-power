@@ -80,7 +80,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "MboaPOS — POS & inventory for African shops" },
       { name: "description", content: "Offline-ready point of sale and stock management built for SMEs in Cameroon and West Africa." },
-      { name: "theme-color", content: "#E8401C" },
+      { name: "theme-color", content: "#1B6CA8" },
       { property: "og:title", content: "MboaPOS — POS & inventory for African shops" },
       { property: "og:description", content: "Offline-ready point of sale and stock management built for SMEs in Cameroon and West Africa." },
       { property: "og:type", content: "website" },
