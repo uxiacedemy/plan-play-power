@@ -414,10 +414,16 @@ export type Database = {
           cashier_id: string | null
           created_at: string
           customer_id: string | null
+          device_id: string | null
           discount: number
           id: string
           notes: string | null
           payment_method: string
+          receipt_no: number | null
+          refund_reason: string | null
+          refunded_at: string | null
+          refunded_from: string | null
+          status: string
           subtotal: number
           tax_total: number
           total: number
@@ -430,10 +436,16 @@ export type Database = {
           cashier_id?: string | null
           created_at?: string
           customer_id?: string | null
+          device_id?: string | null
           discount?: number
           id?: string
           notes?: string | null
           payment_method?: string
+          receipt_no?: number | null
+          refund_reason?: string | null
+          refunded_at?: string | null
+          refunded_from?: string | null
+          status?: string
           subtotal?: number
           tax_total?: number
           total: number
@@ -446,10 +458,16 @@ export type Database = {
           cashier_id?: string | null
           created_at?: string
           customer_id?: string | null
+          device_id?: string | null
           discount?: number
           id?: string
           notes?: string | null
           payment_method?: string
+          receipt_no?: number | null
+          refund_reason?: string | null
+          refunded_at?: string | null
+          refunded_from?: string | null
+          status?: string
           subtotal?: number
           tax_total?: number
           total?: number
@@ -466,7 +484,29 @@ export type Database = {
             referencedRelation: "customers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "sales_refunded_from_fkey"
+            columns: ["refunded_from"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      shop_counters: {
+        Row: {
+          last_receipt_no: number
+          user_id: string
+        }
+        Insert: {
+          last_receipt_no?: number
+          user_id: string
+        }
+        Update: {
+          last_receipt_no?: number
+          user_id?: string
+        }
+        Relationships: []
       }
       shop_members: {
         Row: {
@@ -497,6 +537,7 @@ export type Database = {
           actor_id: string | null
           created_at: string
           delta: number
+          device_id: string | null
           id: string
           note: string | null
           product_id: string
@@ -507,6 +548,7 @@ export type Database = {
           actor_id?: string | null
           created_at?: string
           delta: number
+          device_id?: string | null
           id?: string
           note?: string | null
           product_id: string
@@ -517,6 +559,7 @@ export type Database = {
           actor_id?: string | null
           created_at?: string
           delta?: number
+          device_id?: string | null
           id?: string
           note?: string | null
           product_id?: string
@@ -618,6 +661,18 @@ export type Database = {
             }
             Returns: string
           }
+        | {
+            Args: {
+              _customer_id?: string
+              _device_id?: string
+              _discount?: number
+              _items: Json
+              _notes?: string
+              _payment_method: string
+              _tax_total?: number
+            }
+            Returns: string
+          }
       create_notification: {
         Args: {
           _body?: string
@@ -640,6 +695,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_manager_or_owner: { Args: never; Returns: boolean }
+      next_receipt_no: { Args: { _owner: string }; Returns: number }
       record_customer_payment: {
         Args: {
           _amount: number
@@ -647,6 +704,10 @@ export type Database = {
           _note?: string
           _payment_method: string
         }
+        Returns: string
+      }
+      refund_sale: {
+        Args: { _reason: string; _sale_id: string }
         Returns: string
       }
       void_sale: {
